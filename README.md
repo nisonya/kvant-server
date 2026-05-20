@@ -8,7 +8,6 @@
 
 Полная документация REST API (все эндпоинты, запросы и ответы): [docs/API_DOCUMENTATION.pdf](https://github.com/nisonya/kvant-server/blob/main/docs/API_DOCUMENTATION.pdf).
 
-Чтобы пересобрать документацию локально: `npm run doc:api` → файлы в папке [`docs/`](docs/) (PDF, DOCX, Markdown).
 
 ## Где скачать установщик
 

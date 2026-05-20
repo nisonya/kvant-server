@@ -48,6 +48,52 @@ describe('Reference API', () => {
     });
   });
 
+  describe('CRUD /rooms', () => {
+    test('POST /rooms — добавляет комнату', async () => {
+      mockQuery.mockResolvedValueOnce([{ insertId: 21 }, []]);
+      const res = await request(app)
+        .post('/api/reference/rooms')
+        .send({ name: 'Кабинет', number: '101' });
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.id).toBe(21);
+    });
+
+    test('POST /rooms — 400 при пустом name', async () => {
+      const res = await request(app)
+        .post('/api/reference/rooms')
+        .send({ name: '   ', number: '101' });
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    test('PUT /rooms/:id — обновляет комнату', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }, []]);
+      const res = await request(app)
+        .put('/api/reference/rooms/3')
+        .send({ name: 'Лаборатория', number: '202' });
+      expect(res.status).toBe(200);
+      expect(res.body.data.ok).toBe(true);
+    });
+
+    test('PUT /rooms/:id — 404 если комната не найдена', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 0 }, []]);
+      const res = await request(app)
+        .put('/api/reference/rooms/999')
+        .send({ name: 'Лаборатория', number: '202' });
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+
+    test('DELETE /rooms/:id — удаляет комнату', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 1 }, []]);
+      const res = await request(app).delete('/api/reference/rooms/7');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.ok).toBe(true);
+    });
+  });
+
   describe('GET /access', () => {
     test('возвращает массив уровней доступа', async () => {
       mockQuery.mockResolvedValueOnce([[{ id: 1, name: 'Админ' }], []]);

@@ -3,6 +3,9 @@ const router = express.Router();
 const controller = require('./controller');
 
 router.get('/rooms', controller.getRooms);
+router.post('/rooms', controller.addRoom);
+router.put('/rooms/:id', controller.updateRoom);
+router.delete('/rooms/:id', controller.deleteRoom);
 router.get('/access/:employeeId', controller.getAccessByEmployee);
 router.get('/access', controller.getAccess);
 router.get('/positions', controller.getPositions);

@@ -13,6 +13,27 @@ async function fetchRooms(conn) {
   return rows;
 }
 
+async function addRoomRow(conn, name, number) {
+  const [r] = await conn.query(
+    'INSERT INTO room (name, number) VALUES (?, ?)',
+    [name, number]
+  );
+  return r.insertId;
+}
+
+async function updateRoomRow(conn, id, name, number) {
+  const [r] = await conn.query(
+    'UPDATE room SET name = ?, number = ? WHERE id = ?',
+    [name, number, id]
+  );
+  return r.affectedRows;
+}
+
+async function deleteRoomRow(conn, id) {
+  const [r] = await conn.query('DELETE FROM room WHERE id = ?', [id]);
+  return r.affectedRows;
+}
+
 async function fetchAccess(conn) {
   const [rows] = await conn.query('SELECT id, discription AS name FROM access_level');
   return rows;
@@ -60,6 +81,54 @@ exports.getRooms = async (req, res) => {
   } catch (err) {
     console.error('Ошибка получения комнат:', err);
     sendError(res, 500, 'Не удалось получить список комнат.');
+  }
+};
+
+exports.addRoom = async (req, res) => {
+  if (!hasDocumentsWriteAccess(req)) return sendError(res, 403, 'Недостаточно прав для изменения комнат.');
+  const name = (req.body?.name || '').trim();
+  const number = req.body?.number != null ? String(req.body.number).trim() : null;
+  if (!name) return sendError(res, 400, 'Укажите name (название комнаты).');
+  try {
+    const id = await withConnection((conn) => addRoomRow(conn, name, number || null));
+    sendSuccess(res, { id }, 201);
+  } catch (err) {
+    console.error('addRoom:', err);
+    sendError(res, 500, 'Не удалось создать комнату.');
+  }
+};
+
+exports.updateRoom = async (req, res) => {
+  if (!hasDocumentsWriteAccess(req)) return sendError(res, 403, 'Недостаточно прав для изменения комнат.');
+  const id = parsePositiveId(req.params.id);
+  if (id == null) return sendError(res, 400, 'Некорректный id.');
+  const name = (req.body?.name || '').trim();
+  const number = req.body?.number != null ? String(req.body.number).trim() : null;
+  if (!name) return sendError(res, 400, 'Укажите name (название комнаты).');
+  try {
+    const affected = await withConnection((conn) => updateRoomRow(conn, id, name, number || null));
+    if (affected === 0) return sendError(res, 404, 'Комната не найдена.');
+    sendSuccess(res, { ok: true });
+  } catch (err) {
+    console.error('updateRoom:', err);
+    sendError(res, 500, 'Не удалось обновить комнату.');
+  }
+};
+
+exports.deleteRoom = async (req, res) => {
+  if (!hasDocumentsWriteAccess(req)) return sendError(res, 403, 'Недостаточно прав для изменения комнат.');
+  const id = parsePositiveId(req.params.id);
+  if (id == null) return sendError(res, 400, 'Некорректный id.');
+  try {
+    const affected = await withConnection((conn) => deleteRoomRow(conn, id));
+    if (affected === 0) return sendError(res, 404, 'Комната не найдена.');
+    sendSuccess(res, { ok: true });
+  } catch (err) {
+    if (err && err.code === 'ER_ROW_IS_REFERENCED_2') {
+      return sendError(res, 409, 'Нельзя удалить комнату: есть связанные записи в расписании или аренде.');
+    }
+    console.error('deleteRoom:', err);
+    sendError(res, 500, 'Не удалось удалить комнату.');
   }
 };
 

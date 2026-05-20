@@ -1,7 +1,8 @@
 # Kvant Server
 
+[![О проекте Kvant](https://img.shields.io/badge/Kvant-About%20project-2ea44f?style=for-the-badge&logo=github)](https://github.com/nisonya/kvant)
 [![Скачать релизы](https://img.shields.io/badge/Releases-Download-blue?style=for-the-badge&logo=github)](https://github.com/nisonya/kvant-server/releases)
-[![Документация API](https://img.shields.io/badge/API-Documentation-red?style=for-the-badge&logo=read-the-docs)](https://github.com/nisonya/kvant-server/blob/main/API_DOCUMENTATION.pdf)
+[![Документация API](https://img.shields.io/badge/API-Documentation-red?style=for-the-badge&logo=read-the-docs)](https://github.com/nisonya/kvant-server/blob/main/docs/API_DOCUMENTATION.pdf)
 
 Инструкции по установке desktop и headless версий.
 

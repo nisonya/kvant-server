@@ -15,7 +15,7 @@
 - Откройте релизы проекта на GitHub: [https://github.com/nisonya/kvant-server/releases](https://github.com/nisonya/kvant-server/releases)
 - Скачайте нужный файл:
   - Windows: `Kvant Server Setup <version>.exe`
-  - Linux desktop: архив/AppImage из релиза
+  - Linux с GUI (desktop): `Kvant.Server-<version>.AppImage`
   - Headless (beta): `api-deployer-headless-<version>.tar.gz`
 
 ## Что подготовить до запуска
@@ -67,10 +67,16 @@ FLUSH PRIVILEGES;
 - Установите приложение.
 - Запустите приложение.
 
-### Linux с GUI(desktop)
+### Linux с GUI (desktop)
 
-- Установите пакет/запустите AppImage из релиза.
-- Запустите приложение.
+Скачайте `Kvant.Server-<version>.AppImage` из [релиза](https://github.com/nisonya/kvant-server/releases) и запустите:
+
+```bash
+chmod +x Kvant.Server-<version>.AppImage
+./Kvant.Server-<version>.AppImage
+```
+
+Установка не требуется — это portable-файл. При первом запуске откроется окно настройки (см. раздел 3).
 
 
 ## 3) Первая настройка в приложении

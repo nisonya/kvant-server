@@ -12,4 +12,5 @@ describe('Groups: роуты вызывают нужные функции кон
   test('PUT /list/:id → updateGroup', () => expectRouteToUse(router, 'put', '/list/:id', controller.updateGroup));
   test('DELETE /list/:id → deleteGroup', () => expectRouteToUse(router, 'delete', '/list/:id', controller.deleteGroup));
   test('PUT /pixels → updatePixels', () => expectRouteToUse(router, 'put', '/pixels', controller.updatePixels));
+  test('POST /pixels/clear-all → clearAllPixels', () => expectRouteToUse(router, 'post', '/pixels/clear-all', controller.clearAllPixels));
 });

@@ -10,5 +10,6 @@ router.post('/list', controller.addGroup);
 router.put('/list/:id', controller.updateGroup);
 router.delete('/list/:id', controller.deleteGroup);
 router.put('/pixels', controller.updatePixels);
+router.post('/pixels/clear-all', controller.clearAllPixels);
 
 module.exports = router;

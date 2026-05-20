@@ -19,6 +19,7 @@ async function deploy() {
 
     if (rows.length > 0) {
       console.log('DB is alredy deployed');
+      await ensureAccessLevels();
       await initRootUser();
       await ensureTypesOfOrganization();
       await ensureFormOfHolding();
@@ -60,6 +61,7 @@ await conn.query('SET FOREIGN_KEY_CHECKS=0;');
     }
 
     await conn.query('SET FOREIGN_KEY_CHECKS=1;');
+    await ensureAccessLevels();
     await initRootUser();
     await ensureTypesOfOrganization();
     await ensureFormOfHolding();
@@ -72,6 +74,31 @@ await conn.query('SET FOREIGN_KEY_CHECKS=0;');
     process.exit(1);
   } finally {
     conn.release();
+  }
+}
+
+/** Справочник уровней доступа (id 1–6). Идемпотентно. */
+async function ensureAccessLevels() {
+  try {
+    const pool = await getPool();
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS access_level (
+        id int unsigned NOT NULL AUTO_INCREMENT,
+        discription varchar(200) DEFAULT NULL,
+        PRIMARY KEY (id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci`
+    );
+    await pool.query(
+      `INSERT IGNORE INTO access_level (id, discription) VALUES
+        (1, 'root'),
+        (2, 'педагог'),
+        (3, 'гость'),
+        (4, 'руководитель'),
+        (5, 'педагог организатор'),
+        (6, 'админстратор')`
+    );
+  } catch (err) {
+    console.error('ensureAccessLevels:', err.message);
   }
 }
 

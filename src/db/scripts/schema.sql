@@ -894,9 +894,9 @@ DELIMITER ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `students_AFTER_INSERT` AFTER INSERT ON `students` FOR EACH ROW BEGIN
-Set SQL_SAFE_UPDATES = 0;
-INSERT INTO `kvant`.`pixels` (`id_student`) VALUES (new.idStudent);
-Set SQL_SAFE_UPDATES = 1;
+SET SQL_SAFE_UPDATES = 0;
+INSERT IGNORE INTO `pixels` (`id_student`) VALUES (NEW.idStudent);
+SET SQL_SAFE_UPDATES = 1;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;

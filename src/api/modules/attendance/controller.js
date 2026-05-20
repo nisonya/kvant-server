@@ -1,6 +1,12 @@
 const { withConnection } = require('../../helpers/db');
 const { parsePositiveId } = require('../../helpers/validation');
 const { sendSuccess, sendError } = require('../../helpers/http');
+const ADMIN_ACCESS_LEVELS = [1, 4, 6];
+
+function hasAttendanceManageAccess(req) {
+  const level = req && req.user ? Number(req.user.accessLevel) : NaN;
+  return !isNaN(level) && ADMIN_ACCESS_LEVELS.indexOf(level) >= 0;
+}
 
 async function fetchAttByGroup(conn, groupId) {
   const [rows] = await conn.query(
@@ -117,5 +123,37 @@ exports.newAttendance = async (req, res) => {
   } catch (err) {
     console.error('newAttendance:', err);
     sendError(res, 500, 'Не удалось сохранить посещаемость.');
+  }
+};
+
+exports.clearAll = async (req, res) => {
+  if (!hasAttendanceManageAccess(req)) {
+    return sendError(res, 403, 'Недостаточно прав для массовой очистки посещаемости.');
+  }
+  const timestamp = new Date().toISOString();
+  try {
+    const affectedRows = await withConnection(async (conn) => {
+      await conn.beginTransaction();
+      try {
+        const [result] = await conn.query('DELETE FROM attendance');
+        await conn.commit();
+        return result.affectedRows || 0;
+      } catch (err) {
+        await conn.rollback();
+        throw err;
+      }
+    });
+
+    console.info(
+      `[AUDIT] attendance.clear-all userId=${req.user?.id ?? 'unknown'} accessLevel=${req.user?.accessLevel ?? 'unknown'} timestamp=${timestamp} affectedRows=${affectedRows}`
+    );
+    return res.status(200).json({
+      success: true,
+      message: 'Вся посещаемость очищена',
+      affectedRows,
+    });
+  } catch (err) {
+    console.error('clearAllAttendance:', err);
+    return sendError(res, 500, 'Ошибка БД при массовой очистке посещаемости.');
   }
 };

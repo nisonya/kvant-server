@@ -18,6 +18,7 @@ app.use(express.json());
 const authMiddleware = require('../src/api/middleware/auth');
 
 app.use('/api/auth', require('../src/api/modules/auth/routes'));
+app.use('/desktop-updates', require('../src/api/modules/desktopUpdates/routes'));
 app.use('/api/employees', authMiddleware, require('../src/api/modules/employees/routes'));
 app.use('/api/events/org', authMiddleware, require('../src/api/modules/events/orgRoutes'));
 app.use('/api/events/part', authMiddleware, require('../src/api/modules/events/partRoutes'));

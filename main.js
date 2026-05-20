@@ -3,6 +3,7 @@ const { app, BrowserWindow } = require('electron');
 const { createMainWindow, createSetupWindow } = require('./src/main/windows');
 const { log } = require('./src/main/mainLog');
 const { tryAutoStartApi } = require('./src/main/autoStartApi');
+const { startAutoDailyDump, stopAutoDailyDump } = require('./src/main/autoDump');
 
 function initEnv() {
   process.env.API_DEPLOYER_CONFIG_DIR = path.join(app.getPath('userData'), 'config');
@@ -35,6 +36,7 @@ app.whenReady().then(async () => {
     log('Main window created');
 
     await tryAutoStartApi();
+    startAutoDailyDump();
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) mainWindow = createMainWindow();
@@ -46,6 +48,10 @@ app.whenReady().then(async () => {
 }).catch((err) => {
   log('FATAL: ' + (err.stack || err), true);
   throw err;
+});
+
+app.on('will-quit', () => {
+  stopAutoDailyDump();
 });
 
 process.on('uncaughtException', (err) => {

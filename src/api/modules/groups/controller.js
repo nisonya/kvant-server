@@ -188,3 +188,36 @@ exports.updatePixels = async (req, res) => {
     sendError(res, 500, 'Не удалось обновить пиксели.');
   }
 };
+
+exports.clearAllPixels = async (req, res) => {
+  if (!hasGroupManageAccess(req)) {
+    return sendError(res, 403, 'Недостаточно прав для массовой очистки пикселей.');
+  }
+  const timestamp = new Date().toISOString();
+  try {
+    const affectedRows = await withConnection(async (conn) => {
+      await conn.beginTransaction();
+      try {
+        const setClause = PIXEL_COLUMNS.map((col) => `\`${col}\` = 0`).join(', ');
+        const [result] = await conn.query(`UPDATE pixels SET ${setClause}`);
+        await conn.commit();
+        return result.affectedRows || 0;
+      } catch (err) {
+        await conn.rollback();
+        throw err;
+      }
+    });
+
+    console.info(
+      `[AUDIT] pixels.clear-all userId=${req.user?.id ?? 'unknown'} accessLevel=${req.user?.accessLevel ?? 'unknown'} timestamp=${timestamp} affectedRows=${affectedRows}`
+    );
+    return res.status(200).json({
+      success: true,
+      message: 'Пиксели у всех учеников очищены',
+      affectedRows,
+    });
+  } catch (err) {
+    console.error('clearAllPixels:', err);
+    return sendError(res, 500, 'Ошибка БД при массовой очистке пикселей.');
+  }
+};

@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const { getPool } = require('../../../db/connection');
 const { getAccessSecret, getRefreshSecret } = require('../../jwtSecrets');
 const { sendSuccess, sendError } = require('../../helpers/http');
+const authMiddleware = require('../../middleware/auth');
 
 router.post('/login', async (req, res) => {
   const { login, password } = req.body;
@@ -170,6 +171,47 @@ router.post('/logout', async (req, res) => {
 
   res.clearCookie('access_token');
   sendSuccess(res, { ok: true });
+});
+
+router.post('/change-password', authMiddleware, async (req, res) => {
+  const { old_password, new_password } = req.body || {};
+  const oldPassword = old_password != null ? String(old_password) : '';
+  const newPassword = new_password != null ? String(new_password) : '';
+
+  if (!oldPassword || !newPassword) {
+    return sendError(res, 400, 'Нужны old_password и new_password.');
+  }
+  if (newPassword.length < 6) {
+    return sendError(res, 400, 'Новый пароль слишком короткий (минимум 6 символов).');
+  }
+
+  try {
+    const pool = await getPool();
+    const [rows] = await pool.query(
+      'SELECT id, password_hash FROM profile WHERE id = ? LIMIT 1',
+      [req.user.id]
+    );
+    if (rows.length === 0) {
+      return sendError(res, 401, 'Пользователь не найден.');
+    }
+
+    const profile = rows[0];
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, profile.password_hash);
+    if (!isOldPasswordValid) {
+      return sendError(res, 403, 'Старый пароль неверный.');
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+    await pool.query(
+      'UPDATE profile SET password_hash = ? WHERE id = ?',
+      [newHash, profile.id]
+    );
+
+    return sendSuccess(res, { ok: true });
+  } catch (err) {
+    console.error('change-password:', err);
+    return sendError(res, 500, 'Ошибка сервера');
+  }
 });
 
 module.exports = router;

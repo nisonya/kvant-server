@@ -14,6 +14,7 @@ app.use(cookieParser());
 
 const authMiddleware = require('./middleware/auth');
 app.use('/api/auth', require('./modules/auth/routes'));
+app.use('/desktop-updates', require('./modules/desktopUpdates/routes'));
 
 const protectedRoutes = [
   ['/api/employees', 'modules/employees/routes'],

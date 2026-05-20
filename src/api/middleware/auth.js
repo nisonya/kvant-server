@@ -4,7 +4,7 @@ const { getAccessSecret } = require('../jwtSecrets');
 
 
 const authMiddleware = async (req, res, next) => {
-  const token = req.cookies.access_token || req.headers.authorization?.split(' ')[1];
+  const token = req.cookies?.access_token || req.headers.authorization?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ success: false, error: 'Токен отсутствует' });

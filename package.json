@@ -31,9 +31,6 @@
   "build": {
     "appId": "com.kvant.server",
     "productName": "Kvant Server",
-    "directories": {
-      "output": "dist"
-    },
     "files": [
       "**/*",
       "!*.pem"

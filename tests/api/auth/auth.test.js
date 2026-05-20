@@ -12,6 +12,7 @@ jest.mock('jsonwebtoken', () => ({
 
 jest.mock('bcryptjs', () => ({
   compare: jest.fn().mockResolvedValue(true),
+  hash: jest.fn().mockResolvedValue('new-password-hash'),
 }));
 
 jest.mock('../../../src/db/connection', () => ({
@@ -40,6 +41,7 @@ describe('Auth Router', () => {
       throw new Error('Invalid token');
     });
     bcrypt.compare.mockResolvedValue(true);
+    bcrypt.hash.mockResolvedValue('new-password-hash');
   });
 
   it('returns 400 when login or password is missing', async () => {
@@ -200,5 +202,70 @@ describe('Auth Router', () => {
     expect(response.body.data).toMatchObject({ ok: true });
     expect(response.headers['set-cookie'][0]).toContain('access_token=;');
     expect(mockQuery).toHaveBeenCalledTimes(0);
+  });
+
+  it('changes password successfully for authorized user', async () => {
+    mockQuery
+      .mockResolvedValueOnce([[{ id: 1, access_level_id: 1 }], []]) // auth middleware
+      .mockResolvedValueOnce([[{ id: 1, password_hash: 'old-hash' }], []]) // profile by id
+      .mockResolvedValueOnce([{ affectedRows: 1 }, []]); // update profile
+
+    bcrypt.compare.mockResolvedValueOnce(true);
+    bcrypt.hash.mockResolvedValueOnce('new-password-hash');
+
+    const response = await request(app)
+      .post('/api/auth/change-password')
+      .set('Authorization', 'Bearer fake-token-1')
+      .send({ old_password: 'old-pass', new_password: 'new-pass-123' })
+      .expect(200);
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toEqual({ ok: true });
+    expect(bcrypt.compare).toHaveBeenCalledWith('old-pass', 'old-hash');
+    expect(bcrypt.hash).toHaveBeenCalledWith('new-pass-123', 12);
+  });
+
+  it('returns 400 for invalid change-password body', async () => {
+    mockQuery.mockResolvedValueOnce([[{ id: 1, access_level_id: 1 }], []]); // auth middleware
+
+    const response = await request(app)
+      .post('/api/auth/change-password')
+      .set('Authorization', 'Bearer fake-token-1')
+      .send({ old_password: 'old-pass', new_password: '123' })
+      .expect(400);
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toMatch(/слишком короткий/);
+  });
+
+  it('returns 401 for invalid token on change-password', async () => {
+    jwt.verify.mockImplementationOnce(() => {
+      throw new Error('Invalid token');
+    });
+
+    const response = await request(app)
+      .post('/api/auth/change-password')
+      .set('Authorization', 'Bearer invalid-token')
+      .send({ old_password: 'old-pass', new_password: 'new-pass-123' })
+      .expect(401);
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Недействительный или просроченный токен');
+  });
+
+  it('returns 403 when old password is incorrect', async () => {
+    mockQuery
+      .mockResolvedValueOnce([[{ id: 1, access_level_id: 1 }], []]) // auth middleware
+      .mockResolvedValueOnce([[{ id: 1, password_hash: 'old-hash' }], []]); // profile by id
+    bcrypt.compare.mockResolvedValueOnce(false);
+
+    const response = await request(app)
+      .post('/api/auth/change-password')
+      .set('Authorization', 'Bearer fake-token-1')
+      .send({ old_password: 'wrong-old', new_password: 'new-pass-123' })
+      .expect(403);
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Старый пароль неверный.');
   });
 });

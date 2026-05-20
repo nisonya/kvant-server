@@ -6,5 +6,6 @@ router.get('/by-group/:id', controller.getByGroup);
 router.put('/by-group-date', controller.getByGroupAndDate);
 router.put('/by-group-date-new', controller.getByGroupAndDateNew);
 router.post('/', controller.newAttendance);
+router.post('/clear-all', controller.clearAll);
 
 module.exports = router;

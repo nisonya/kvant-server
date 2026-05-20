@@ -8,4 +8,5 @@ describe('Attendance: роуты вызывают нужные функции к
   test('PUT /by-group-date → getByGroupAndDate', () => expectRouteToUse(router, 'put', '/by-group-date', controller.getByGroupAndDate));
   test('PUT /by-group-date-new → getByGroupAndDateNew', () => expectRouteToUse(router, 'put', '/by-group-date-new', controller.getByGroupAndDateNew));
   test('POST / → newAttendance', () => expectRouteToUse(router, 'post', '/', controller.newAttendance));
+  test('POST /clear-all → clearAll', () => expectRouteToUse(router, 'post', '/clear-all', controller.clearAll));
 });

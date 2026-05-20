@@ -1,10 +1,8 @@
 const request = require('supertest');
 
 jest.mock('../../../src/db/connection');
-jest.mock('../../../src/api/middleware/auth', () => (req, res, next) => {
-  req.user = { id: 1, accessLevel: 1 };
-  next();
-});
+const mockAuth = jest.fn();
+jest.mock('../../../src/api/middleware/auth', () => (req, res, next) => mockAuth(req, res, next));
 
 const connection = require('../../../src/db/connection');
 const app = require('../../setup');
@@ -12,15 +10,28 @@ const app = require('../../setup');
 describe('Group API', () => {
   let mockQuery;
   let mockRelease;
+  let mockBeginTransaction;
+  let mockCommit;
+  let mockRollback;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuth.mockImplementation((req, res, next) => {
+      req.user = { id: 1, accessLevel: 1 };
+      next();
+    });
     mockQuery = jest.fn();
     mockRelease = jest.fn();
+    mockBeginTransaction = jest.fn().mockResolvedValue();
+    mockCommit = jest.fn().mockResolvedValue();
+    mockRollback = jest.fn().mockResolvedValue();
     connection.getPool.mockResolvedValue({
       getConnection: jest.fn().mockResolvedValue({
         query: mockQuery,
-        release: mockRelease
+        release: mockRelease,
+        beginTransaction: mockBeginTransaction,
+        commit: mockCommit,
+        rollback: mockRollback,
       })
     });
   });
@@ -189,6 +200,33 @@ describe('Group API', () => {
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
       expect(res.body.error).toBe('Нужны хотя бы одно поле пикселей.');
+    });
+  });
+
+  describe('POST /pixels/clear-all', () => {
+    test('очищает пиксели для всех учеников', async () => {
+      mockQuery.mockResolvedValueOnce([{ affectedRows: 12 }, []]);
+      const res = await request(app).post('/api/groups/pixels/clear-all').send({});
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        message: 'Пиксели у всех учеников очищены',
+        affectedRows: 12,
+      });
+      expect(mockBeginTransaction).toHaveBeenCalledTimes(1);
+      expect(mockCommit).toHaveBeenCalledTimes(1);
+      expect(mockRollback).not.toHaveBeenCalled();
+    });
+
+    test('403 при недостатке прав', async () => {
+      mockAuth.mockImplementationOnce((req, res, next) => {
+        req.user = { id: 2, accessLevel: 2 };
+        next();
+      });
+      const res = await request(app).post('/api/groups/pixels/clear-all').send({});
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+      expect(res.body.error).toMatch(/Недостаточно прав/);
     });
   });
 });

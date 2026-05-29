@@ -25,7 +25,7 @@ async function fetchSchedule(conn) {
 
 async function fetchScheduleByTeacher(conn, teacherId) {
   const [rows] = await conn.query(`
-    SELECT room.name AS room, g.name AS \`group\`, s.startTime, s.endTime, weekday.name AS day,
+    SELECT s.idlesson AS id, room.name AS room, g.name AS \`group\`, s.startTime, s.endTime, weekday.name AS day,
       CONCAT(e.second_name, ' ', LEFT(e.first_name, 1), '.', LEFT(e.patronymic, 1)) AS name
     FROM \`schedule\` s
     LEFT JOIN employees_schedule es ON s.idlesson = es.idSchedule
@@ -41,7 +41,7 @@ async function fetchScheduleByTeacher(conn, teacherId) {
 
 async function fetchScheduleByGroup(conn, groupId) {
   const [rows] = await conn.query(`
-    SELECT room.name AS room, g.name AS \`group\`, s.startTime, s.endTime, weekday.name AS day,
+    SELECT s.idlesson AS id, room.name AS room, g.name AS \`group\`, s.startTime, s.endTime, weekday.name AS day,
       CONCAT(e.second_name, ' ', LEFT(e.first_name, 1), '.', LEFT(e.patronymic, 1)) AS name
     FROM \`schedule\` s
     LEFT JOIN employees_schedule es ON s.idlesson = es.idSchedule
@@ -57,7 +57,7 @@ async function fetchScheduleByGroup(conn, groupId) {
 
 async function fetchScheduleByRoom(conn, roomId) {
   const [rows] = await conn.query(`
-    SELECT room.name AS room, g.name AS \`group\`, s.startTime, s.endTime, weekday.name AS day,
+    SELECT s.idlesson AS id, room.name AS room, g.name AS \`group\`, s.startTime, s.endTime, weekday.name AS day,
       CONCAT(e.second_name, ' ', LEFT(e.first_name, 1), '.', LEFT(e.patronymic, 1)) AS name
     FROM \`schedule\` s
     LEFT JOIN employees_schedule es ON s.idlesson = es.idSchedule
@@ -73,7 +73,7 @@ async function fetchScheduleByRoom(conn, roomId) {
 
 async function fetchScheduleByDate(conn, date, roomId) {
   const [rows] = await conn.query(`
-    SELECT g.name AS name, s.startTime, s.endTime
+    SELECT s.idlesson AS id, g.name AS name, s.startTime, s.endTime
     FROM \`schedule\` s
     LEFT JOIN employees_schedule es ON s.idlesson = es.idSchedule
     INNER JOIN room ON es.room = room.id
@@ -117,9 +117,16 @@ async function updateScheduleRow(conn, id, roomId, groupId, startTime, endTime) 
 }
 
 async function deleteScheduleRow(conn, id) {
-  await conn.query('DELETE FROM employees_schedule WHERE idSchedule = ?', [id]);
-  const [r] = await conn.query('DELETE FROM `schedule` WHERE idlesson = ?', [id]);
-  return r.affectedRows;
+  await conn.beginTransaction();
+  try {
+    await conn.query('DELETE FROM employees_schedule WHERE idSchedule = ?', [id]);
+    const [r] = await conn.query('DELETE FROM `schedule` WHERE idlesson = ?', [id]);
+    await conn.commit();
+    return r.affectedRows;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  }
 }
 
 exports.getSchedule = async (req, res) => {
@@ -241,8 +248,11 @@ exports.updateSchedule = async (req, res) => {
 };
 
 exports.deleteSchedule = async (req, res) => {
-  const id = parsePositiveId(req.params.id);
-  if (id == null) return sendError(res, 400, 'Некорректный id.');
+  // id в path (DELETE /:id) или в body (как у PUT /) — id занятия = schedule.idlesson
+  const id = parsePositiveId(req.params.id ?? req.body?.id ?? req.body?.id_schedule);
+  if (id == null) {
+    return sendError(res, 400, 'Некорректный id. Укажите id занятия (idlesson) в URL или в теле: { "id": ... }.');
+  }
   try {
     const affected = await withConnection((conn) => deleteScheduleRow(conn, id));
     if (affected === 0) return sendError(res, 404, 'Занятие не найдено.');

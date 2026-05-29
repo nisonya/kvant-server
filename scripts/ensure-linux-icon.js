@@ -1,6 +1,6 @@
 /**
- * Создаёт build/icon.png для Linux-сборки из icon.ico (ImageMagick).
- * Без convert/magick — записывается однотонный PNG 256×256 (требование electron-builder для deb).
+ * Создаёт build/icon.png 256×256 для Linux-сборки (electron-builder).
+ * Порядок: ImageMagick → sharp (из icon.png/icon.ico) → однотонный PNG.
  */
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +10,23 @@ const { execSync } = require('child_process');
 const icoPath = path.join(__dirname, '..', 'build', 'icon.ico');
 const pngPath = path.join(__dirname, '..', 'build', 'icon.png');
 
-const MIN_VALID_BYTES = 8000;
+const MIN_SIZE = 256;
+
+function readPngDimensions(filePath) {
+  const b = fs.readFileSync(filePath);
+  if (b.length < 24 || b[0] !== 0x89) return null;
+  return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+}
+
+function isPngLargeEnough(filePath) {
+  try {
+    const dim = readPngDimensions(filePath);
+    if (!dim) return false;
+    return dim.width >= MIN_SIZE && dim.height >= MIN_SIZE;
+  } catch {
+    return false;
+  }
+}
 
 function crc32Table() {
   const t = new Uint32Array(256);
@@ -74,27 +90,72 @@ function solidPng256(r = 0x2d, g = 0x6c, b = 0xb5) {
 
 function writeFallbackPng() {
   fs.writeFileSync(pngPath, solidPng256());
-  console.warn('ImageMagick не найден: записан однотонный build/icon.png 256×256 (лучше сгенерировать из icon.ico через convert/magick).');
+  console.warn('Записан однотонный build/icon.png 256×256 (установите ImageMagick или sharp).');
 }
 
-if (fs.existsSync(pngPath) && fs.statSync(pngPath).size >= MIN_VALID_BYTES) {
-  console.log('icon.png уже существует');
-  process.exit(0);
+async function resizeWithSharp(inputPath) {
+  const sharp = require('sharp');
+  const tmp = `${pngPath}.tmp`;
+  await sharp(inputPath)
+    .resize(MIN_SIZE, MIN_SIZE, {
+      fit: 'contain',
+      position: 'center',
+      background: { r: 245, g: 240, b: 232, alpha: 1 },
+    })
+    .png()
+    .toFile(tmp);
+  fs.renameSync(tmp, pngPath);
+  console.log(`icon.png ${MIN_SIZE}×${MIN_SIZE} (sharp, из ${path.basename(inputPath)})`);
 }
 
-if (!fs.existsSync(icoPath)) {
-  console.error('Ошибка: build/icon.ico не найден');
-  process.exit(1);
+function tryImageMagick(inputPath) {
+  execSync(`convert "${inputPath}" -resize ${MIN_SIZE}x${MIN_SIZE} "${pngPath}"`, { stdio: 'inherit' });
+  console.log('icon.png создан (convert)');
 }
 
-try {
-  execSync(`convert "${icoPath}" -resize 256x256 "${pngPath}"`, { stdio: 'inherit' });
-  console.log('icon.png создан');
-} catch (e) {
-  try {
-    execSync(`magick "${icoPath}" -resize 256x256 "${pngPath}"`, { stdio: 'inherit' });
-    console.log('icon.png создан');
-  } catch (e2) {
-    writeFallbackPng();
+function tryMagick(inputPath) {
+  execSync(`magick "${inputPath}" -resize ${MIN_SIZE}x${MIN_SIZE} "${pngPath}"`, { stdio: 'inherit' });
+  console.log('icon.png создан (magick)');
+}
+
+async function main() {
+  if (fs.existsSync(pngPath) && isPngLargeEnough(pngPath)) {
+    const dim = readPngDimensions(pngPath);
+    console.log(`icon.png уже существует (${dim.width}×${dim.height})`);
+    return;
   }
+
+  const inputPath = fs.existsSync(pngPath) ? pngPath : icoPath;
+  if (!fs.existsSync(inputPath)) {
+    console.error('Ошибка: нужен build/icon.png или build/icon.ico');
+    process.exit(1);
+  }
+
+  try {
+    tryImageMagick(inputPath);
+    return;
+  } catch {
+    /* convert недоступен */
+  }
+
+  try {
+    tryMagick(inputPath);
+    return;
+  } catch {
+    /* magick недоступен */
+  }
+
+  try {
+    await resizeWithSharp(inputPath);
+    return;
+  } catch {
+    /* sharp не установлен */
+  }
+
+  writeFallbackPng();
 }
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

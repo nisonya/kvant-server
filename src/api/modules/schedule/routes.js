@@ -11,6 +11,7 @@ router.get('/by-group/:id', controller.getScheduleByGroup);
 router.get('/by-room/:id', controller.getScheduleByRoom);
 router.post('/', controller.addSchedule);
 router.put('/', controller.updateSchedule);
+router.delete('/', controller.deleteSchedule);
 router.delete('/:id', controller.deleteSchedule);
 
 module.exports = router;

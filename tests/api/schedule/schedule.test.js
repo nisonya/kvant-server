@@ -22,6 +22,9 @@ describe('Schedule API', () => {
       getConnection: jest.fn().mockResolvedValue({
         query: mockQuery,
         release: mockRelease,
+        beginTransaction: jest.fn().mockResolvedValue(undefined),
+        commit: jest.fn().mockResolvedValue(undefined),
+        rollback: jest.fn().mockResolvedValue(undefined),
       }),
     });
   });
@@ -73,11 +76,12 @@ describe('Schedule API', () => {
 
   describe('POST /by-date', () => {
     test('успех при date и room_id', async () => {
-      mockQuery.mockResolvedValueOnce([[{ name: 'ПР-01', startTime: '08:00', endTime: '09:00' }], []]);
+      mockQuery.mockResolvedValueOnce([[{ id: 4, name: 'ПР-01', startTime: '08:00', endTime: '09:00' }], []]);
       const res = await request(app).post('/api/schedule/by-date').send({ date: '2025-02-01', room_id: 1 });
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data[0]).toMatchObject({ id: 4 });
     });
     test('400 без date или room_id', async () => {
       const res = await request(app).post('/api/schedule/by-date').send({ date: '2025-02-01' });
@@ -93,11 +97,12 @@ describe('Schedule API', () => {
 
   describe('GET /by-teacher/:id', () => {
     test('возвращает расписание преподавателя', async () => {
-      mockQuery.mockResolvedValueOnce([[{ room: 'Каб. 1', group: 'ПР-01', startTime: '08:00', day: 'Пн' }], []]);
+      mockQuery.mockResolvedValueOnce([[{ id: 1, room: 'Каб. 1', group: 'ПР-01', startTime: '08:00', day: 'Пн' }], []]);
       const res = await request(app).get('/api/schedule/by-teacher/1');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveLength(1);
+      expect(res.body.data[0]).toMatchObject({ id: 1 });
     });
     test('пустой список', async () => {
       mockQuery.mockResolvedValueOnce([[], []]);
@@ -114,10 +119,11 @@ describe('Schedule API', () => {
 
   describe('GET /by-group/:id', () => {
     test('возвращает расписание группы', async () => {
-      mockQuery.mockResolvedValueOnce([[{ room: 'Каб. 2', group: 'ПР-01', startTime: '09:00' }], []]);
+      mockQuery.mockResolvedValueOnce([[{ id: 2, room: 'Каб. 2', group: 'ПР-01', startTime: '09:00' }], []]);
       const res = await request(app).get('/api/schedule/by-group/2');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
+      expect(res.body.data[0]).toMatchObject({ id: 2 });
     });
     test('400 при невалидном id', async () => {
       const res = await request(app).get('/api/schedule/by-group/0');
@@ -128,10 +134,11 @@ describe('Schedule API', () => {
 
   describe('GET /by-room/:id', () => {
     test('возвращает расписание по комнате', async () => {
-      mockQuery.mockResolvedValueOnce([[{ room: 'Каб. 1', group: 'ПР-01' }], []]);
+      mockQuery.mockResolvedValueOnce([[{ id: 3, room: 'Каб. 1', group: 'ПР-01' }], []]);
       const res = await request(app).get('/api/schedule/by-room/1');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
+      expect(res.body.data[0]).toMatchObject({ id: 3 });
     });
     test('400 при невалидном id', async () => {
       const res = await request(app).get('/api/schedule/by-room/0');
@@ -216,9 +223,16 @@ describe('Schedule API', () => {
   });
 
   describe('DELETE /:id', () => {
-    test('успех', async () => {
+    test('успех — id в URL', async () => {
       mockQuery.mockResolvedValueOnce([{}, []]).mockResolvedValueOnce([{ affectedRows: 1 }, []]);
       const res = await request(app).delete('/api/schedule/3');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toMatchObject({ ok: true });
+    });
+    test('успех — id в теле (как у PUT)', async () => {
+      mockQuery.mockResolvedValueOnce([{}, []]).mockResolvedValueOnce([{ affectedRows: 1 }, []]);
+      const res = await request(app).delete('/api/schedule/').send({ id: 3 });
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toMatchObject({ ok: true });
@@ -232,7 +246,7 @@ describe('Schedule API', () => {
     test('400 при невалидном id', async () => {
       const res = await request(app).delete('/api/schedule/0');
       expect(res.status).toBe(400);
-      expect(res.body.error).toBe('Некорректный id.');
+      expect(res.body.error).toMatch(/Некорректный id/);
     });
   });
 });

@@ -13,5 +13,6 @@ describe('Schedule: роуты вызывают нужные функции ко
   test('GET /by-room/:id → getScheduleByRoom', () => expectRouteToUse(router, 'get', '/by-room/:id', controller.getScheduleByRoom));
   test('POST / → addSchedule', () => expectRouteToUse(router, 'post', '/', controller.addSchedule));
   test('PUT / → updateSchedule', () => expectRouteToUse(router, 'put', '/', controller.updateSchedule));
+  test('DELETE / → deleteSchedule', () => expectRouteToUse(router, 'delete', '/', controller.deleteSchedule));
   test('DELETE /:id → deleteSchedule', () => expectRouteToUse(router, 'delete', '/:id', controller.deleteSchedule));
 });

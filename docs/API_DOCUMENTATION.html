@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <title>Документация API Kvant Server</title>
+  <style>
+    @page { margin: 16mm 12mm; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #111; line-height: 1.4; max-width: 100%; padding: 0 8px; }
+    h1 { font-size: 20pt; border-bottom: 2px solid #2563eb; padding-bottom: 0.3em; page-break-after: avoid; }
+    h2 { font-size: 14pt; margin-top: 1.2em; color: #1e40af; page-break-after: avoid; }
+    h3, h4 { font-size: 11pt; page-break-after: avoid; }
+    table { width: 100%; border-collapse: collapse; margin: 0.6em 0 1em; font-size: 8.5pt; page-break-inside: auto; }
+    th, td { border: 1px solid #cbd5e1; padding: 4px 6px; vertical-align: top; text-align: left; }
+    th { background: #e2e8f0; }
+    tr { page-break-inside: avoid; }
+    pre, code { font-family: Consolas, monospace; font-size: 8.5pt; background: #f8fafc; }
+    pre { padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
+    code { padding: 1px 4px; }
+    hr { border: none; border-top: 1px solid #cbd5e1; margin: 1.5em 0; }
+    ul { margin: 0.3em 0 0.8em 1.2em; }
+    a { color: #2563eb; text-decoration: none; }
+    p { margin: 0.4em 0; }
+  </style>
+</head>
+<body><h1>Документация API Kvant Server</h1>
+<p><strong>Версия:</strong> 1.4.1<br><strong>Дата:</strong> 2026-05-28<br><strong>Протокол:</strong> HTTPS</p>
+<hr>
+<h2>Оглавление</h2>
+<ol>
+<li><a href="#1-%D0%BE%D0%B1%D1%89%D0%B8%D0%B5-%D1%81%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F">Общие сведения</a></li>
+<li><a href="#2-auth--%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F">Auth — Авторизация</a></li>
+<li><a href="#3-desktop-updates--%D0%BE%D0%B1%D0%BD%D0%BE%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D1%8F-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%B0">Desktop Updates — Обновления клиента</a></li>
+<li><a href="#4-employees--%D1%81%D0%BE%D1%82%D1%80%D1%83%D0%B4%D0%BD%D0%B8%D0%BA%D0%B8">Employees — Сотрудники</a></li>
+<li><a href="#5-events-org--%D0%BC%D0%B5%D1%80%D0%BE%D0%BF%D1%80%D0%B8%D1%8F%D1%82%D0%B8%D1%8F-%D0%BE%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D0%B8">Events (org) — Мероприятия организации</a></li>
+<li><a href="#6-events-part--%D0%BC%D0%B5%D1%80%D0%BE%D0%BF%D1%80%D0%B8%D1%8F%D1%82%D0%B8%D1%8F-%D1%83%D1%87%D0%B0%D1%81%D1%82%D0%B8%D1%8F">Events (part) — Мероприятия участия</a></li>
+<li><a href="#7-schedule--%D1%80%D0%B0%D1%81%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5">Schedule — Расписание</a></li>
+<li><a href="#8-reference--%D1%81%D0%BF%D1%80%D0%B0%D0%B2%D0%BE%D1%87%D0%BD%D0%B8%D0%BA%D0%B8">Reference — Справочники</a></li>
+<li><a href="#9-rent--%D0%B0%D1%80%D0%B5%D0%BD%D0%B4%D0%B0-%D0%BF%D0%BE%D0%BC%D0%B5%D1%89%D0%B5%D0%BD%D0%B8%D0%B9">Rent — Аренда помещений</a></li>
+<li><a href="#10-students--%D1%81%D1%82%D1%83%D0%B4%D0%B5%D0%BD%D1%82%D1%8B">Students — Студенты</a></li>
+<li><a href="#11-attendance--%D0%BF%D0%BE%D1%81%D0%B5%D1%89%D0%B0%D0%B5%D0%BC%D0%BE%D1%81%D1%82%D1%8C">Attendance — Посещаемость</a></li>
+<li><a href="#12-groups--%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D1%8B-%D0%B8-%D0%BF%D0%B8%D0%BA%D1%81%D0%B5%D0%BB%D0%B8">Groups — Группы и пиксели</a></li>
+<li><a href="#13-%D0%BA%D0%BE%D0%B4%D1%8B-http-%D0%BE%D1%82%D0%B2%D0%B5%D1%82%D0%BE%D0%B2">Коды HTTP-ответов</a></li>
+</ol>
+<hr>
+<h2>1. Общие сведения</h2>
+<p><strong>Базовый URL:</strong> <code>https://&lt;host&gt;:&lt;port&gt;</code></p>
+<table>
+<thead>
+<tr>
+<th>Успех</th>
+<th>Ошибка</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{ success: true, data: ... } — для большинства эндпоинтов</code></td>
+<td><code>{ success: false, error: &quot;текст&quot; }</code></td>
+</tr>
+</tbody></table>
+<p><strong>Content-Type:</strong> application/json</p>
+<p><strong>Авторизация:</strong></p>
+<p>Эндпоинты /api/auth/login, /refresh, /logout — без токена. Остальные /api/* — с access-токеном: cookie access_token или заголовок Authorization: Bearer <token>. Refresh — cookie refresh_token или body refreshToken.</p>
+<p><strong>Уровни доступа:</strong></p>
+<p>Уровни доступа (access_level_id в profile): 1 — root, 2 — сотрудник, 3 — преподаватель, 4 — руководитель, 5 — методист, 6 — администратор. Операции «только админ» — уровни 1, 4, 6.</p>
+<p><strong>Desktop updates:</strong></p>
+<p>Маршруты /desktop-updates/* не требуют авторизации. Каталог задаётся DESKTOP_UPDATES_ROOT или DESKTOP_UPDATES_DIR, иначе &lt;рабочая_директория&gt;/desktop-updates.</p>
+<hr>
+<h2>2. Auth — Авторизация</h2>
+<p><strong>Базовый путь:</strong> <code>/api/auth</code><br><strong>Токен:</strong> не требуется</p>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/auth/login</code></td>
+<td>Вход по логину и паролю</td>
+<td>Body JSON: login (string), password (string)</td>
+<td>Cookies: access_token, refresh_token. Body: { success: true, data: { user: { id, accessLevel } } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/auth/refresh</code></td>
+<td>Обновить access-токен по refresh</td>
+<td>Cookie refresh_token или body: refreshToken (string)</td>
+<td>{ success: true, data: { ok: true } }, новый access_token в cookie</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/auth/logout</code></td>
+<td>Выход, очистка cookies</td>
+<td>Cookie refresh_token (опционально отзыв в БД)</td>
+<td>{ success: true, data: { ok: true } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/auth/change-password</code></td>
+<td>Смена пароля текущего пользователя</td>
+<td>Токен обязателен. Body: old_password, new_password (string, min 6)</td>
+<td>200: { success: true, data: { ok: true } }; 400 — нет полей/короткий пароль; 401 — нет токена; 403 — неверный old_password</td>
+<td>Объект</td>
+<td>Любой авторизованный пользователь</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>3. Desktop Updates — Обновления клиента</h2>
+<p><strong>Базовый путь:</strong> <code>/desktop-updates</code><br><strong>Токен:</strong> не требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/desktop-updates/latest.yml</code></td>
+<td>Манифест electron-updater (текст YAML)</td>
+<td>—</td>
+<td>Файл latest.yml; в нём должны быть корректные имена .exe и .blockmap в каталоге</td>
+<td>Файл</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/desktop-updates/:installerName.exe</code></td>
+<td>Скачать установщик Windows</td>
+<td>installerName — имя файла из latest.yml (без .exe в параметре — суффикс добавляется маршрутом)</td>
+<td>Бинарный поток application/octet-stream</td>
+<td>Файл</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/desktop-updates/:installerName.exe.blockmap</code></td>
+<td>Blockmap для дельта-обновления</td>
+<td>installerName — как в latest.yml</td>
+<td>Бинарный поток</td>
+<td>Файл</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>4. Employees — Сотрудники</h2>
+<p><strong>Базовый путь:</strong> <code>/api/employees</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/employees</code></td>
+<td>Список активных с должностью</td>
+<td>—</td>
+<td>Массив: id_employees, first_name, second_name, patronymic, position, position_name</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/all</code></td>
+<td>Полные поля активных сотрудников</td>
+<td>—</td>
+<td>Массив полей employees + position</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/with-inactive</code></td>
+<td>Все сотрудники, включая неактивных</td>
+<td>—</td>
+<td>Массив с is_active</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/schedule</code></td>
+<td>Расписание занятий (сотрудник–группа–комната)</td>
+<td>—</td>
+<td>Массив: id_employees, id_schedule, room_id, employee_name, day_name, startTime, endTime, room_name</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/short-list</code></td>
+<td>Краткий список id и имя</td>
+<td>—</td>
+<td>Массив: { id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/sizes</code></td>
+<td>id, имя, пол, размер</td>
+<td>—</td>
+<td>Массив: { id, name, gender, size }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/search</code></td>
+<td>Поиск по букве (query)</td>
+<td>Query: letter</td>
+<td>Массив: { id_employees, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/search/:letter</code></td>
+<td>Поиск по букве в пути</td>
+<td>Path: letter</td>
+<td>Массив: { id_employees, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/kpi/:id</code></td>
+<td>KPI сотрудника</td>
+<td>Path: id</td>
+<td>{ KPI }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/:id</code></td>
+<td>Один сотрудник</td>
+<td>Path: id</td>
+<td>Полный объект с position_name, KPI, is_active и др.</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/employees</code></td>
+<td>Назначить сотрудника на мероприятие</td>
+<td>event_id, employee_id (number)</td>
+<td>{ success, message }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/add</code></td>
+<td>Добавить сотрудника и профиль</td>
+<td>first_name, second_name, patronymic, date_of_birth, position, login, password, access_level_id; опц.: contact, size, education, schedule, gender, KPI</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/employees/kpi</code></td>
+<td>Установить KPI</td>
+<td>id, KPI (string)</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/contact</code></td>
+<td>Обновить контакт</td>
+<td>id, contact</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/size</code></td>
+<td>Обновить размер</td>
+<td>id, size</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/employees/:id</code></td>
+<td>Обновить данные сотрудника</td>
+<td>Path: id + поля как при создании</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/employees/:id</code></td>
+<td>Деактивировать/удалить сотрудника (каскад по связям)</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>5. Events (org) — Мероприятия организации</h2>
+<p><strong>Базовый путь:</strong> <code>/api/events/org</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/org/resp-table</code></td>
+<td>Таблица ответственных</td>
+<td>—</td>
+<td>Массив responsible_for_org_events</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/full-inf/:id</code></td>
+<td>Полная информация о мероприятии</td>
+<td>Path: id</td>
+<td>Поля мероприятия + type (id types_of_organization), link</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/responsible/:id</code></td>
+<td>Ответственные по мероприятию</td>
+<td>Path: id мероприятия</td>
+<td>Массив: id_event, id_employees, first_name, second_name</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/notifications-today/:id</code></td>
+<td>Мероприятия сотрудника на сегодня</td>
+<td>Path: id сотрудника</td>
+<td>Массив: id, name, dates_of_event, day_of_the_week</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/notifications-tomorrow/:id</code></td>
+<td>Мероприятия сотрудника на завтра</td>
+<td>Path: id сотрудника</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/:eventId/documents</code></td>
+<td>Список документов мероприятия</td>
+<td>Path: eventId</td>
+<td>Массив: id, id_event, storage_path, original_filename, mime_type, size_bytes, sort_order, created_at</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/documents/:documentId/download</code></td>
+<td>Скачать файл документа</td>
+<td>Path: documentId</td>
+<td>Файл (Content-Disposition)</td>
+<td>Файл</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/org/list</code></td>
+<td>Список с фильтрами и пагинацией</td>
+<td>filters: period или date_from/date_to; опц.: search, employee_id, type; sort; page, limit</td>
+<td>{ success, data: [...], page, limit }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/count</code></td>
+<td>Количество по фильтрам</td>
+<td>filters как у list</td>
+<td>{ success, total }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org</code></td>
+<td>Создать мероприятие</td>
+<td>name, form_of_holding, dates_of_event, day_of_the_week, amount_of_applications, amount_of_planning_application, annotation, result; опц.: type, link</td>
+<td>{ success, id }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/responsible</code></td>
+<td>Добавить ответственного</td>
+<td>id_employee / id_employees, id_event</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/:eventId/documents</code></td>
+<td>Загрузить документ</td>
+<td>multipart: file (макс. 50 МБ); опц.: sort_order</td>
+<td>{ success, data: запись документа }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/org/notifications</code></td>
+<td>Мероприятия сотрудника на дату</td>
+<td>id_employee, date (YYYY-MM-DD)</td>
+<td>{ success, data: массив }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org</code></td>
+<td>Обновить мероприятие</td>
+<td>id + поля создания</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод PATCH</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/org/documents/:documentId</code></td>
+<td>Изменить sort_order документа</td>
+<td>Body: sort_order (number)</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/org/responsible</code></td>
+<td>Удалить связь ответственный–мероприятие</td>
+<td>Body: id_employee, id_event</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/:id</code></td>
+<td>Удалить мероприятие</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/org/documents/:documentId</code></td>
+<td>Удалить документ (файл + запись БД)</td>
+<td>Path: documentId</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>6. Events (part) — Мероприятия участия</h2>
+<p><strong>Базовый путь:</strong> <code>/api/events/part</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/part/resp-table</code></td>
+<td>Таблица ответственных</td>
+<td>—</td>
+<td>Массив responsible_for_part_events</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/full-inf/:id</code></td>
+<td>Полная информация</td>
+<td>Path: id</td>
+<td>form_of_holding, id_type — id справочников; остальные поля мероприятия</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/responsible/:id</code></td>
+<td>Ответственные</td>
+<td>Path: id</td>
+<td>Массив + mark_of_sending_an_application</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/responsible-new/:id</code></td>
+<td>Ответственные + result_of_responsible</td>
+<td>Path: id</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/notifications-today/:id</code></td>
+<td>Дедлайн регистрации сегодня</td>
+<td>Path: id сотрудника</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/notifications-tomorrow/:id</code></td>
+<td>Дедлайн завтра</td>
+<td>Path: id</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/:eventId/students</code></td>
+<td>Студенты мероприятия участия</td>
+<td>Path: eventId</td>
+<td>Массив студентов привязанных к мероприятию</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/:eventId/documents</code></td>
+<td>Список документов</td>
+<td>Path: eventId</td>
+<td>Как у org/documents</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/documents/:documentId/download</code></td>
+<td>Скачать документ</td>
+<td>Path: documentId</td>
+<td>Файл</td>
+<td>Файл</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/part/list</code></td>
+<td>Список с фильтрами</td>
+<td>filters по registration_deadline; search, employee_id, id_type; page, limit</td>
+<td>{ success, data, page, limit }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/count</code></td>
+<td>Количество</td>
+<td>filters как list</td>
+<td>{ success, total }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part</code></td>
+<td>Создать мероприятие</td>
+<td>name, form_of_holding, id_type, registration_deadline, participants_and_works, annotation, dates_of_event, link, participants_amount, winner_amount, runner_up_amount, result (опц.)</td>
+<td>{ success, id }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/responsible</code></td>
+<td>Добавить ответственного</td>
+<td>id_employee / id_employees, id_event</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/:eventId/students</code></td>
+<td>Добавить студента на мероприятие</td>
+<td>Path: eventId; body: student_id и поля результата (см. контроллер)</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/:eventId/documents</code></td>
+<td>Загрузить документ</td>
+<td>multipart file, макс. 50 МБ</td>
+<td>Запись документа</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/part/notifications</code></td>
+<td>Мероприятия с дедлайном на дату</td>
+<td>id_employee, date</td>
+<td>{ success, data }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part</code></td>
+<td>Обновить мероприятие</td>
+<td>id + поля</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/result</code></td>
+<td>Результат ответственного</td>
+<td>id_event, id_employee, result_of_responsible (опц.)</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/mark</code></td>
+<td>Отметка отправки заявки</td>
+<td>id_event, id_employee, mark_of_sending_an_application (0|1)</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/students/:id</code></td>
+<td>Обновить запись студента на мероприятии</td>
+<td>Path: id записи event_part_students + поля</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод PATCH</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/part/documents/:documentId</code></td>
+<td>sort_order документа</td>
+<td>sort_order</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/events/part/responsible</code></td>
+<td>Удалить ответственного</td>
+<td>id_employee, id_event</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/:id</code></td>
+<td>Удалить мероприятие</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/students/:id</code></td>
+<td>Удалить студента с мероприятия</td>
+<td>Path: id записи</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/events/part/documents/:documentId</code></td>
+<td>Удалить документ</td>
+<td>Path: documentId</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>7. Schedule — Расписание</h2>
+<p><strong>Базовый путь:</strong> <code>/api/schedule</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/schedule</code></td>
+<td>Полное расписание</td>
+<td>—</td>
+<td>id, room, group, startTime, endTime, day, id_employees</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/schedule/teachers</code></td>
+<td>Список преподавателей</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/schedule/groups</code></td>
+<td>Список групп</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/schedule/by-teacher/:id</code></td>
+<td>По преподавателю</td>
+<td>Path: id</td>
+<td>Массив занятий с id занятия (idlesson → id)</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/schedule/by-group/:id</code></td>
+<td>По группе</td>
+<td>Path: id</td>
+<td>Массив занятий с id занятия (idlesson → id)</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/schedule/by-room/:id</code></td>
+<td>По комнате</td>
+<td>Path: id</td>
+<td>Массив занятий с id занятия (idlesson → id)</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/schedule/by-date</code></td>
+<td>Занятия по дате и комнате</td>
+<td>date (YYYY-MM-DD), room_id</td>
+<td>{ success, data } где каждый элемент содержит id занятия (id)</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/schedule</code></td>
+<td>Добавить занятие</td>
+<td>room_id, group_id, start_time, end_time, day (1–7), employee_id</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/schedule</code></td>
+<td>Обновить занятие</td>
+<td>id, room_id, group_id, start_time, end_time</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/schedule/:id</code></td>
+<td>Удалить занятие</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/schedule</code></td>
+<td>Удалить занятие (альтернативно)</td>
+<td>Body: id или id_schedule</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>8. Reference — Справочники</h2>
+<p><strong>Базовый путь:</strong> <code>/api/reference</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/reference/rooms</code></td>
+<td>Список комнат</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/access</code></td>
+<td>Все уровни доступа</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/access/:employeeId</code></td>
+<td>Уровень доступа сотрудника</td>
+<td>Path: employeeId</td>
+<td>Объект access</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/positions</code></td>
+<td>Должности</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/docs</code></td>
+<td>Типы документов</td>
+<td>—</td>
+<td>Массив documents</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/types-of-holding</code></td>
+<td>Форматы проведения</td>
+<td>—</td>
+<td>Массив form_of_holding</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/types-of-organization</code></td>
+<td>Типы мероприятий организации</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/levels</code></td>
+<td>Уровни мероприятий участия</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/reference/student-statuses</code></td>
+<td>Статусы студентов</td>
+<td>—</td>
+<td>Массив справочника</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/reference/rooms</code></td>
+<td>Добавить комнату</td>
+<td>name (string)</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+<tr>
+<td><code>/api/reference/positions</code></td>
+<td>Добавить должность</td>
+<td>name</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+<tr>
+<td><code>/api/reference/docs</code></td>
+<td>Добавить тип документа</td>
+<td>поля documents</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/reference/rooms/:id</code></td>
+<td>Обновить комнату</td>
+<td>Path: id; body: name</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+<tr>
+<td><code>/api/reference/positions/:id</code></td>
+<td>Обновить должность</td>
+<td>Path: id; name</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+<tr>
+<td><code>/api/reference/docs/:id</code></td>
+<td>Обновить тип документа</td>
+<td>Path: id + поля</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/reference/rooms/:id</code></td>
+<td>Удалить комнату</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+<tr>
+<td><code>/api/reference/positions/:id</code></td>
+<td>Удалить должность</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+<tr>
+<td><code>/api/reference/docs/:id</code></td>
+<td>Удалить тип документа</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>9. Rent — Аренда помещений</h2>
+<p><strong>Базовый путь:</strong> <code>/api/rent</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/rent/by-event/:id</code></td>
+<td>Аренды по мероприятию</td>
+<td>Path: id мероприятия</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/rent/by-id/:id</code></td>
+<td>Одна запись</td>
+<td>Path: id</td>
+<td>event_id, room_id, date, start_time, end_time</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/rent/by-date-room</code></td>
+<td>Аренды на дату и комнату</td>
+<td>date, room_id</td>
+<td>{ success, data }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/rent</code></td>
+<td>Создать аренду</td>
+<td>event_id, room_id, date, start_time, end_time</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/rent</code></td>
+<td>Обновить</td>
+<td>id, event_id, room_id, date, start_time, end_time</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/rent/:id</code></td>
+<td>Удалить</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>10. Students — Студенты</h2>
+<p><strong>Базовый путь:</strong> <code>/api/students</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/students/search</code></td>
+<td>Поиск по фамилии</td>
+<td>Query: letter</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/search/:letter</code></td>
+<td>Поиск, буква в пути</td>
+<td>Path: letter</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/search-new</code></td>
+<td>Поиск с isActive и числом групп</td>
+<td>—</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/search-new/:letter</code></td>
+<td>Поиск-new с letter</td>
+<td>Path: letter</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/groups-by-student/:id</code></td>
+<td>Группы студента</td>
+<td>Path: id</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/by-group/:id</code></td>
+<td>Краткий список группы</td>
+<td>Path: id группы</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/full-by-group/:id</code></td>
+<td>Полные данные студентов группы</td>
+<td>Path: id</td>
+<td>Массив всех полей</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/:id</code></td>
+<td>Один студент</td>
+<td>Path: id</td>
+<td>Объект студента</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/students/add-to-group</code></td>
+<td>Добавить в группу</td>
+<td>student_id, group_id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students</code></td>
+<td>Создать студента</td>
+<td>surname, name, patronymic, birthDay, parentSurname, parentName, parentPatronymic, email, phone; опц.: navigator</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/students/exist</code></td>
+<td>Проверить существование по ФИО</td>
+<td>surname, name, patronymic</td>
+<td>{ success, data: { amount } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students</code></td>
+<td>Обновить студента</td>
+<td>id + поля создания</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/students/update-to-group</code></td>
+<td>Перевод между группами</td>
+<td>student_id, old_group_id, new_group_id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/students/from-group</code></td>
+<td>Убрать из группы (посещаемость не удаляется)</td>
+<td>Body: student_id, group_id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>11. Attendance — Посещаемость</h2>
+<p><strong>Базовый путь:</strong> <code>/api/attendance</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/attendance/by-group/:id</code></td>
+<td>Посещаемость по группе</td>
+<td>Path: id группы</td>
+<td>name, date_of_lesson, presence</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/attendance</code></td>
+<td>Создать/обновить запись (upsert)</td>
+<td>student_id, group_id, date_of_lesson (YYYY-MM-DD), presence (0/1)</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/attendance/clear-all</code></td>
+<td>Полная очистка таблицы attendance</td>
+<td>—</td>
+<td>{ success: true, message, affectedRows } — не обёртка data</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/attendance/by-group-date</code></td>
+<td>По группе и дате</td>
+<td>group_id, date</td>
+<td>{ success, data }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/attendance/by-group-date-new</code></td>
+<td>По группе и дате с id_student</td>
+<td>group_id, date</td>
+<td>data + id_student</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>12. Groups — Группы и пиксели</h2>
+<p><strong>Базовый путь:</strong> <code>/api/groups</code><br><strong>Токен:</strong> требуется</p>
+<h3>Метод GET</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/groups/by-teacher/:id</code></td>
+<td>Группы преподавателя</td>
+<td>Path: id</td>
+<td>Массив</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/groups/table</code></td>
+<td>Таблица students_groups</td>
+<td>—</td>
+<td>Все связи</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/groups/pixels/:id</code></td>
+<td>Пиксели студентов группы</td>
+<td>Path: id группы</td>
+<td>name + поля pixels</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/groups/list</code></td>
+<td>Список групп</td>
+<td>—</td>
+<td>{ id, name }</td>
+<td>Массив</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Метод POST</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/groups/list</code></td>
+<td>Создать группу</td>
+<td>name</td>
+<td>{ success, data: { id } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+<tr>
+<td><code>/api/groups/pixels/clear-all</code></td>
+<td>Обнулить все столбцы пикселей у всех студентов</td>
+<td>—</td>
+<td>{ success, message, affectedRows }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<h3>Метод PUT</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/groups/pixels</code></td>
+<td>Обновить пиксели студента</td>
+<td>id_student; поля: part_of_comp, make_content, invite_friend, clean_kvantum, filled_project_card_on_time, finished_project_with_product, regional_competition, interregional_competition, all_russian_competition, international_competition, nto, become_an_engineering_volunteer, help_with_event, make_own_event, special_achievements, fine</td>
+<td>{ success, data: { ok, affected } }</td>
+<td>Объект</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>/api/groups/list/:id</code></td>
+<td>Переименовать группу</td>
+<td>Path: id; name</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<h3>Метод DELETE</h3>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Описание</th>
+<th>Запрос</th>
+<th>Ответ</th>
+<th>Тип</th>
+<th>Права</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/api/groups/list/:id</code></td>
+<td>Удалить группу</td>
+<td>Path: id</td>
+<td>{ success, data: { ok } }</td>
+<td>Объект</td>
+<td>1, 4, 6</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>13. Коды HTTP-ответов</h2>
+<table>
+<thead>
+<tr>
+<th>Код</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>200</td>
+<td>Успех</td>
+</tr>
+<tr>
+<td>201</td>
+<td>Создано</td>
+</tr>
+<tr>
+<td>400</td>
+<td>Неверный запрос (валидация, отсутствуют поля)</td>
+</tr>
+<tr>
+<td>401</td>
+<td>Не авторизован (нет или просрочен access-токен)</td>
+</tr>
+<tr>
+<td>403</td>
+<td>Доступ запрещён (недостаточно прав или неверный старый пароль)</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Не найдено</td>
+</tr>
+<tr>
+<td>409</td>
+<td>Конфликт (дубликат, занятая запись)</td>
+</tr>
+<tr>
+<td>500</td>
+<td>Ошибка сервера</td>
+</tr>
+<tr>
+<td>503</td>
+<td>Сервис недоступен (например, не настроен каталог документов)</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>Сгенерировано командой <code>npm run doc:api</code>. Источник данных: <code>scripts/api-documentation-data.js</code>.</em></p>
+</body>
+</html>

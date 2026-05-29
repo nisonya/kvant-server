@@ -3,8 +3,8 @@
  * Синхронизировано с маршрутами в src/api/modules.
  */
 
-const DOC_VERSION = '1.4';
-const DOC_DATE = '2026-05-20';
+const DOC_VERSION = '1.4.1';
+const DOC_DATE = '2026-05-28';
 
 const GENERAL = {
   baseUrl: 'https://<host>:<port>',
@@ -220,12 +220,12 @@ const API_DATA = {
         { path: '/api/schedule', description: 'Полное расписание', request: '—', response: 'id, room, group, startTime, endTime, day, id_employees', type: 'array' },
         { path: '/api/schedule/teachers', description: 'Список преподавателей', request: '—', response: '{ id, name }', type: 'array' },
         { path: '/api/schedule/groups', description: 'Список групп', request: '—', response: '{ id, name }', type: 'array' },
-        { path: '/api/schedule/by-teacher/:id', description: 'По преподавателю', request: 'Path: id', response: 'Массив занятий', type: 'array' },
-        { path: '/api/schedule/by-group/:id', description: 'По группе', request: 'Path: id', response: 'Массив', type: 'array' },
-        { path: '/api/schedule/by-room/:id', description: 'По комнате', request: 'Path: id', response: 'Массив', type: 'array' },
+        { path: '/api/schedule/by-teacher/:id', description: 'По преподавателю', request: 'Path: id', response: 'Массив занятий с id занятия (idlesson → id)', type: 'array' },
+        { path: '/api/schedule/by-group/:id', description: 'По группе', request: 'Path: id', response: 'Массив занятий с id занятия (idlesson → id)', type: 'array' },
+        { path: '/api/schedule/by-room/:id', description: 'По комнате', request: 'Path: id', response: 'Массив занятий с id занятия (idlesson → id)', type: 'array' },
       ],
       POST: [
-        { path: '/api/schedule/by-date', description: 'Занятия по дате и комнате', request: 'date (YYYY-MM-DD), room_id', response: '{ success, data }', type: 'array' },
+        { path: '/api/schedule/by-date', description: 'Занятия по дате и комнате', request: 'date (YYYY-MM-DD), room_id', response: '{ success, data } где каждый элемент содержит id занятия (id)', type: 'array' },
         { path: '/api/schedule', description: 'Добавить занятие', request: 'room_id, group_id, start_time, end_time, day (1–7), employee_id', response: '{ success, data: { id } }', type: 'object' },
       ],
       PUT: [
@@ -233,6 +233,7 @@ const API_DATA = {
       ],
       DELETE: [
         { path: '/api/schedule/:id', description: 'Удалить занятие', request: 'Path: id', response: '{ success, data: { ok } }', type: 'object' },
+        { path: '/api/schedule', description: 'Удалить занятие (альтернативно)', request: 'Body: id или id_schedule', response: '{ success, data: { ok } }', type: 'object' },
       ],
     },
   },

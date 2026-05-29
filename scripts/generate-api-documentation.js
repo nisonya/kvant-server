@@ -1,5 +1,5 @@
 /**
- * Генерирует полную документацию API: DOCX и PDF.
+ * Генерирует полную документацию API: Markdown, DOCX, HTML, PDF.
  * npm run doc:api
  */
 
@@ -180,6 +180,96 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+/** Экранирование ячеек markdown-таблицы */
+function mdCell(text) {
+  return String(text || '—').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+}
+
+/** Приближение к якорям GitHub для заголовков вида «N. Name» */
+function githubHeadingAnchor(sectionNum, name) {
+  const slug = `${sectionNum}-${name}`
+    .toLowerCase()
+    .replace(/[()]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/[^a-z0-9а-яё\-]/gi, '');
+  return slug;
+}
+
+function buildMarkdown() {
+  const lines = [];
+  const moduleEntries = Object.values(API_DATA);
+  let sectionNum = 2;
+
+  lines.push('# Документация API Kvant Server', '');
+  lines.push(`**Версия:** ${DOC_VERSION}  `);
+  lines.push(`**Дата:** ${DOC_DATE}  `);
+  lines.push(`**Протокол:** ${GENERAL.protocol}`, '');
+  lines.push('---', '');
+  lines.push('## Оглавление', '');
+  lines.push('1. [Общие сведения](#1-общие-сведения)');
+  for (const mod of moduleEntries) {
+    lines.push(`${sectionNum}. [${mod.name}](#${githubHeadingAnchor(sectionNum, mod.name)})`);
+    sectionNum++;
+  }
+  lines.push(`${sectionNum}. [Коды HTTP-ответов](#${sectionNum}-коды-http-ответов)`, '');
+  lines.push('---', '');
+  lines.push('## 1. Общие сведения', '');
+  lines.push(`**Базовый URL:** \`${GENERAL.baseUrl}\``, '');
+  lines.push('| Успех | Ошибка |');
+  lines.push('|-------|--------|');
+  lines.push(`| \`${GENERAL.successFormat}\` | \`${GENERAL.errorFormat}\` |`, '');
+  lines.push(`**Content-Type:** ${GENERAL.contentType}`, '');
+  lines.push('**Авторизация:**', '', GENERAL.auth, '');
+  lines.push('**Уровни доступа:**', '', GENERAL.accessLevels, '');
+  lines.push('**Desktop updates:**', '', GENERAL.desktopUpdates, '');
+  lines.push('---', '');
+
+  sectionNum = 2;
+  for (const mod of moduleEntries) {
+    lines.push(`## ${sectionNum}. ${mod.name}`, '');
+    lines.push(`**Базовый путь:** \`${mod.basePath}\`  `);
+    lines.push(`**Токен:** ${mod.tokenRequired ? 'требуется' : 'не требуется'}`, '');
+
+    for (const method of METHOD_ORDER) {
+      const eps = mod.endpoints[method];
+      if (!eps?.length) continue;
+      lines.push(`### Метод ${method}`, '');
+      lines.push('| Путь | Описание | Запрос | Ответ | Тип | Права |');
+      lines.push('|------|----------|--------|-------|-----|-------|');
+      for (const ep of eps) {
+        lines.push(
+          `| \`${mdCell(ep.path)}\` | ${mdCell(ep.description)} | ${mdCell(ep.request)} | ${mdCell(ep.response)} | ${mdCell(responseTypeLabel(ep.type))} | ${mdCell(ep.roles || '—')} |`
+        );
+      }
+      lines.push('');
+    }
+    lines.push('---', '');
+    sectionNum++;
+  }
+
+  lines.push(`## ${sectionNum}. Коды HTTP-ответов`, '');
+  lines.push('| Код | Описание |');
+  lines.push('|-----|----------|');
+  for (const [code, desc] of ERROR_CODES) {
+    lines.push(`| ${code} | ${desc} |`);
+  }
+  lines.push('');
+  lines.push('---', '');
+  lines.push(
+    '*Сгенерировано командой `npm run doc:api`. Источник данных: `scripts/api-documentation-data.js`.*',
+    ''
+  );
+
+  return lines.join('\n');
+}
+
+function writeMarkdown() {
+  const md = buildMarkdown();
+  fs.writeFileSync(MD_PATH, md, 'utf8');
+  console.log('Markdown:', MD_PATH);
+}
+
 function buildHtml() {
   const rows = (eps) =>
     eps
@@ -353,11 +443,12 @@ async function writePdf(html) {
 async function main() {
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
+  writeMarkdown();
   await writeDocx();
   const html = await writeHtml();
   await writePdf(html);
 
-  console.log('\nГотово. Основной файл для просмотра: docs/API_DOCUMENTATION.pdf');
+  console.log('\nГотово: docs/API_DOCUMENTATION.md | .pdf | .docx');
 }
 
 main().catch((err) => {
